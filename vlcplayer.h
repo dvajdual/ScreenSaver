@@ -34,7 +34,6 @@ private:
     int currentMedia = 0;
     int repeat = 0;
 protected:
-    bool eventFilter(QObject *watched, QEvent *event);
     void timerEvent(QTimerEvent *event);
 private slots:
     void slotEnded();

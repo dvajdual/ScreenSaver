@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = player
-
+CONFIG += C++11
 QT += network \
       xml \
       multimedia \
@@ -19,4 +19,17 @@ FORMS += \
     dispatcher.ui \
     vlcplayer.ui
 
-LIBS       += -lVLCQtCore -lVLCQtWidgets
+install.path = $$OUT_PWD
+install.files += *.mov
+INSTALLS +=install
+
+macx{
+LIBS += -F$$PWD/../../Qt/5.5/clang_64/lib/ -framework VLCQtCore
+
+INCLUDEPATH += $$PWD/../../Qt/5.5/clang_64/include
+DEPENDPATH += $$PWD/../../Qt/5.5/clang_64/include
+LIBS += -F$$PWD/../../Qt/5.5/clang_64/lib/ -framework VLCQtWidgets
+
+INCLUDEPATH += $$PWD/../../Qt/5.5/clang_64/include
+DEPENDPATH += $$PWD/../../Qt/5.5/clang_64/include
+}

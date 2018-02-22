@@ -5,7 +5,9 @@
 #include <QDir>
 #include <QWindow>
 #include <QScreen>
+#if defined(WIN32) || defined(WIN64)
 #include <windows.h>
+#endif
 #include <QThread>
 #include <QPointer>
 #include <QNetworkReply>

@@ -1,6 +1,8 @@
 #include "vlcplayer.h"
 #include "ui_vlcplayer.h"
+#if defined(WIN32) || defined(WIN64)
 #include <windows.h>
+#endif
 #include <QDesktopWidget>
 #include <QMetaEnum>
 #include <QDebug>
@@ -50,22 +52,7 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
 #endif
     connect(_player, &VlcMediaPlayer::end, this, &vlcPlayer::slotEnded);
     setFocusPolicy(Qt::WheelFocus);
-    //ui->VlcWidget->installEventFilter(this);
-    ui->VlcWidget->_video->installEventFilter(this);
 }
-
-bool vlcPlayer::eventFilter(QObject *watched, QEvent *event)
-{
-    if(event->type() == QEvent::FocusIn
-            ||
-       event->type() == QEvent::FocusOut)
-    {
-        qDebug() << QMetaEnum::fromType<QEvent::Type>().valueToKey(event->type());
-    }
-    qDebug() << QMetaEnum::fromType<QEvent::Type>().valueToKey(event->type());
-    return QWidget::eventFilter(watched, event);
-}
-
 
 void vlcPlayer::startPulse()
 {
