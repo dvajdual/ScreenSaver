@@ -38,7 +38,6 @@ Dispatcher::Dispatcher(QWidget *parent) :
     }
     //Test
     slotClickStart();
-    //hide();
 }
 
 void Dispatcher::sendReply()

@@ -5,6 +5,7 @@
 #include <QMetaEnum>
 #include <QDebug>
 #include <QMouseEvent>
+#include <QProcess>
 vlcPlayer::vlcPlayer(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::vlcPlayer)
@@ -17,7 +18,12 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
     ui->VlcWidget->setMouseTracking(true);
 
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+#if defined(WIN32) || defined(WIN64)
     showMaximized();
+#endif
+#ifdef __APPLE__
+    showFullScreen();
+#endif
     setCursor(Qt::BlankCursor);
     setMouseTracking(true);
     QRect rec = QApplication::desktop()->screenGeometry();
@@ -27,7 +33,7 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
     this->setMinimumHeight(height);
     this->setMaximumWidth(width);
     this->setMinimumWidth(width);
-
+#if defined(WIN32) || defined(WIN64)
     {
         HWND hwnd = FindWindow(L"Shell_traywnd", L"");
         SetWindowPos(hwnd,0,0,0,0,0,SWP_HIDEWINDOW);
@@ -36,6 +42,12 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
         HWND hwnd = FindWindow(L"Shell_SecondaryTrayWnd", L"");
         SetWindowPos(hwnd,0,0,0,0,0,SWP_HIDEWINDOW);
     }
+#endif
+#ifdef __APPLE__
+    QProcess proc;
+    QString str_skript = "defaults write com.apple.dock autohide -bool true && defaults write com.apple.dock autohide-delay -float 0 && defaults write com.apple.dock autohide-time-modifier -float 0 && killall Dock";
+    proc.start("sh", QStringList() << "-c" << str_skript);
+#endif
     connect(_player, &VlcMediaPlayer::end, this, &vlcPlayer::slotEnded);
     setFocusPolicy(Qt::WheelFocus);
     //ui->VlcWidget->installEventFilter(this);
@@ -91,6 +103,7 @@ void vlcPlayer::timerEvent(QTimerEvent *event)
 {
     if(idFocusTimer == event->timerId())
     {
+#if defined(WIN32) || defined(WIN64)
         POINT pt;
         HWND hwnd;
         GetCursorPos(&pt);
@@ -99,6 +112,7 @@ void vlcPlayer::timerEvent(QTimerEvent *event)
 
         SetFocus(hwnd);
         killTimer(idFocusTimer);
+#endif
     }
 }
 
@@ -116,6 +130,7 @@ void vlcPlayer::openMedia(QStringList files)
 
 vlcPlayer::~vlcPlayer()
 {
+#if defined(WIN32) || defined(WIN64)
     {
         HWND hwnd = FindWindow(L"Shell_traywnd", L"");
         if(hwnd)
@@ -126,5 +141,12 @@ vlcPlayer::~vlcPlayer()
         if(hwnd)
             SetWindowPos(hwnd,0,0,0,0,0,SWP_SHOWWINDOW);
     }
+#endif
+#ifdef __APPLE__
+    QProcess proc;
+    QString str_skript = "defaults delete com.apple.dock autohide && defaults delete com.apple.dock autohide-delay && defaults delete com.apple.dock autohide-time-modifier && killall Dock";
+    proc.start("sh", QStringList() << "-c" << str_skript);
+    proc.waitForFinished(10*60*1000);
+#endif
     delete ui;
 }
