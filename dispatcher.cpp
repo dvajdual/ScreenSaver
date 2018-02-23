@@ -5,6 +5,9 @@
 #include <QJsonObject>
 #include <QFileDialog>
 #include <QMetaEnum>
+#if defined(WIN32) || defined(WIN64)
+#include <Winuser.h>
+#endif
 Dispatcher::Dispatcher(QWidget *parent) :
     QWidget(parent),
     settings("shmuleyStudio", "ScreenSaver"),
@@ -36,8 +39,8 @@ Dispatcher::Dispatcher(QWidget *parent) :
     {
         iTimeNewBlock = settings.value("TimeNewBlock").toLongLong();
     }
-    //Test
-    slotClickStart();
+
+    idUserEvents = startTimer(defStepUserEvents);
 }
 
 void Dispatcher::sendReply()
@@ -49,7 +52,6 @@ void Dispatcher::sendReply()
             this, SLOT(slotReplyErrored(QNetworkReply::NetworkError)));
 }
 
-
 void Dispatcher::slotReplyFinished(QNetworkReply *reply)
 {
     auto out = reply->readAll();
@@ -58,8 +60,11 @@ void Dispatcher::slotReplyFinished(QNetworkReply *reply)
     if(iTimeNewBlock != obj.value("time").toDouble())
     {
         iTimeNewBlock = obj.value("time").toDouble();
+        if(!_vlcPlayer.isNull() && !bFirstRequest)
+            showNewBlockSaverScreen();
     }
     idNewBlockTimer = startTimer(defStepNewBlock);
+    bFirstRequest = false;
 }
 
 void Dispatcher::slotFindFileAddNewBlock()
@@ -87,7 +92,6 @@ void Dispatcher::slotFindFileNoBlock()
 
 }
 
-
 void Dispatcher::slotReplyErrored(QNetworkReply::NetworkError code)
 {
     qDebug() <<QMetaEnum::fromType<QNetworkReply::NetworkError>().valueToKey(code);
@@ -103,7 +107,6 @@ void Dispatcher::slotSslErrors(QNetworkReply *reply, const QList<QSslError> &err
 
 void Dispatcher::showNewBlockSaverScreen()
 {
-    createPlayer();
     _vlcPlayer->startPulse();
 }
 
@@ -119,9 +122,9 @@ void Dispatcher::createPlayer()
     }
 }
 
-
 void Dispatcher::slotClickStart()
 {
+    bFirstRequest = true;
     createPlayer();
     idNewBlockTimer = startTimer(defStepNewBlock);
 }
@@ -134,13 +137,45 @@ void Dispatcher::timerEvent(QTimerEvent *event)
         killTimer(idNewBlockTimer);
         idNewBlockTimer = 0;
     }
+    if(idUserEvents == event->timerId())
+    {
+        uint IdleTime = 0;
+        //fill IdleTime
+        {
+#if defined(WIN32) || defined(WIN64)
+        LASTINPUTINFO LastInput = {};
+        LastInput.cbSize = sizeof(LastInput);
+        ::GetLastInputInfo(&LastInput);
+        IdleTime = ::GetTickCount() - LastInput.dwTime;
+        qDebug() <<"IdleTime:" <<IdleTime;
+#endif
+        }
+        if(IdleTime >= defTimeUserEvents
+                &&
+           _vlcPlayer.isNull())
+            slotClickStart();
+    }
 }
 
 void Dispatcher::slotHideScreenSaver()
 {
     if(!_vlcPlayer.isNull() && timeStart.msecsTo(QTime::currentTime()) > 1000)
     {
-        qDebug() << "slotHideScreenSaver";
+    #if defined(WIN32) || defined(WIN64)
+        int sequrity = 0;
+        //remove current screen saver
+        {
+            auto regPath = "\\HKEY_CURRENT_USER\\Control Panel\\Desktop";
+            QSettings settings_registr(regPath, QSettings::NativeFormat);
+            sequrity = settings_registr.value("ScreenSaverIsSecure").toInt();
+        }
+        qDebug() << "slotPlayerDestroyed" << sequrity;
+        if(sequrity)
+        {
+            LockWorkStation();
+            qDebug() << "LockWorkStation";
+        }
+    #endif
         _vlcPlayer->close();
         _vlcPlayer->deleteLater();
     }

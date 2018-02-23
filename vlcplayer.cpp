@@ -39,10 +39,16 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
     {
         HWND hwnd = FindWindow(L"Shell_traywnd", L"");
         SetWindowPos(hwnd,0,0,0,0,0,SWP_HIDEWINDOW);
+        HWND hwndButton = FindWindowEx(hwnd, 0, L"Button", L"");
+        if(hwndButton)
+            SetWindowPos(hwndButton,0,0,0,0,0,SWP_HIDEWINDOW);
     }
     {
         HWND hwnd = FindWindow(L"Shell_SecondaryTrayWnd", L"");
         SetWindowPos(hwnd,0,0,0,0,0,SWP_HIDEWINDOW);
+        HWND hwndButton = FindWindowEx(hwnd, 0, L"Button", L"");
+        if(hwndButton)
+            SetWindowPos(hwndButton,0,0,0,0,0,SWP_HIDEWINDOW);
     }
 #endif
 #ifdef __APPLE__
@@ -56,12 +62,17 @@ vlcPlayer::vlcPlayer(QWidget *parent) :
 
 void vlcPlayer::startPulse()
 {
-    _player->open(_media1);
+    bPulse = true;
 }
 
 void vlcPlayer::slotEnded()
 {
     _player->open(_media);
+    if(bPulse)
+    {
+        _player->open(_media1);
+        bPulse = false;
+    }
 #if 0
     if(currentMedia == 0)
     {
@@ -98,7 +109,7 @@ void vlcPlayer::timerEvent(QTimerEvent *event)
         hwnd = WindowFromPoint(pt);
 
         SetFocus(hwnd);
-        killTimer(idFocusTimer);
+        //killTimer(idFocusTimer);
 #endif
     }
 }
@@ -122,11 +133,17 @@ vlcPlayer::~vlcPlayer()
         HWND hwnd = FindWindow(L"Shell_traywnd", L"");
         if(hwnd)
             SetWindowPos(hwnd,0,0,0,0,0,SWP_SHOWWINDOW);
+        HWND hwndButton = FindWindowEx(hwnd, 0, L"Button", L"");
+        if(hwndButton)
+            SetWindowPos(hwndButton,0,0,0,0,0,SWP_SHOWWINDOW);
     }
     {
         HWND hwnd = FindWindow(L"Shell_SecondaryTrayWnd", L"");
         if(hwnd)
             SetWindowPos(hwnd,0,0,0,0,0,SWP_SHOWWINDOW);
+        HWND hwndButton = FindWindowEx(hwnd, 0, L"Button", L"");
+        if(hwndButton)
+            SetWindowPos(hwndButton,0,0,0,0,0,SWP_SHOWWINDOW);
     }
 #endif
 #ifdef __APPLE__

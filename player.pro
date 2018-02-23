@@ -1,10 +1,10 @@
 TEMPLATE = app
-TARGET = player
+TARGET = ScreenSaver
 CONFIG += C++11
 QT += network \
-      xml \
+#      xml \
       multimedia \
-      multimediawidgets \
+#      multimediawidgets \
       widgets
 
 HEADERS = \
@@ -32,4 +32,8 @@ LIBS += -F$$PWD/../../Qt/5.5/clang_64/lib/ -framework VLCQtWidgets
 
 INCLUDEPATH += $$PWD/../../Qt/5.5/clang_64/include
 DEPENDPATH += $$PWD/../../Qt/5.5/clang_64/include
+}
+
+win32{
+LIBS       += -lVLCQtCore -lVLCQtWidgets
 }

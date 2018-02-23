@@ -33,6 +33,7 @@ private:
     VlcMediaPlayer *_player;
     int currentMedia = 0;
     int repeat = 0;
+    bool bPulse {false};
 protected:
     void timerEvent(QTimerEvent *event);
 private slots:

@@ -14,11 +14,11 @@ public:
 protected:
     bool eventFilter(QObject *obj, QEvent *event)
     {
-        if(/*event->type() == QEvent::MouseMove
-           ||*/
+        if(event->type() == QEvent::MouseMove
+           ||
            event->type() == QEvent::KeyPress
-/*           ||
-           event->type() == QEvent::MouseButtonPress*/)
+           ||
+           event->type() == QEvent::MouseButtonPress)
         {
             emit closeScreenSaver();
         }

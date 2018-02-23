@@ -15,7 +15,8 @@
 #include <QSettings>
 #include "vlcplayer.h"
 #define defStepNewBlock 100
-
+#define defStepUserEvents 1000
+#define defTimeUserEvents 10*1000
 namespace Ui {
 class Dispatcher;
 }
@@ -43,6 +44,9 @@ private:
     void showNewBlockSaverScreen();
     void createPlayer();
     QTime timeStart;
+
+    int idUserEvents {0};
+    bool bFirstRequest {false};
 protected:
     void timerEvent(QTimerEvent *event);
 private slots:
